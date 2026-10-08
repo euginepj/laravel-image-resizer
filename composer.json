@@ -1,4 +1,4 @@
-﻿{
+{
     "name": "euginepj/laravel-image-resizer",
     "description": "Interactive image cropper and multi-format (WebP, JPEG, PNG, AVIF) converter package for Laravel.",
     "keywords": [
