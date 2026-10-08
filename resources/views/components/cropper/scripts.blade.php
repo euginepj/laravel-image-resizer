@@ -2,7 +2,7 @@
 <style>
     [x-cloak] { display: none !important; }
     .cropper-view-box {
-        outline: 2px solid #059e0b !important;
+        outline: 2px solid #f59e0b !important;
         outline-color: #f59e0b !important;
         border-radius: 4px;
     }
@@ -36,6 +36,14 @@ document.addEventListener('alpine:init', () => {
         scaleX: 1,
         scaleY: 1,
 
+        init() {
+            window.addEventListener('resize', () => {
+                if (this.isOpen && this.cropper) {
+                    this.cropper.resize();
+                }
+            });
+        },
+
         onFileSelected(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -55,7 +63,11 @@ document.addEventListener('alpine:init', () => {
             reader.onload = (event) => {
                 const img = this.$refs.imageElement;
                 img.onload = () => {
-                    this.initCropper();
+                    this.$nextTick(() => {
+                        requestAnimationFrame(() => {
+                            this.initCropper();
+                        });
+                    });
                 };
                 img.src = event.target.result;
             };
@@ -66,6 +78,11 @@ document.addEventListener('alpine:init', () => {
             if (this.cropper) {
                 this.cropper.destroy();
             }
+
+            const studio = this.$refs.cropperStudio;
+            const containerWidth = studio ? studio.clientWidth : 0;
+            const containerHeight = studio ? studio.clientHeight : 0;
+
             this.cropper = new Cropper(this.$refs.imageElement, {
                 aspectRatio: cfg.aspectRatio,
                 viewMode: 1,
@@ -80,9 +97,24 @@ document.addEventListener('alpine:init', () => {
                 cropBoxResizable: true,
                 toggleDragModeOnDblclick: false,
                 background: false,
+                minContainerWidth: containerWidth || 200,
+                minContainerHeight: containerHeight || 200,
                 ready: () => {
-                    // Recalculate canvas fit when modal becomes visible
-                    this.cropper.crop();
+                    if (this.cropper) {
+                        const canvasData = this.cropper.getCanvasData();
+                        const cropBoxData = this.cropper.getCropBoxData();
+                        if (canvasData && cropBoxData && canvasData.width > 0 && canvasData.height > 0) {
+                            if (canvasData.width < cropBoxData.width || canvasData.height < cropBoxData.height) {
+                                const scaleX = cropBoxData.width / canvasData.width;
+                                const scaleY = cropBoxData.height / canvasData.height;
+                                const zoomFactor = Math.max(scaleX, scaleY);
+                                if (zoomFactor > 1) {
+                                    this.cropper.zoom(zoomFactor - 1);
+                                }
+                            }
+                        }
+                        this.cropper.crop();
+                    }
                 },
                 zoom: (e) => {
                     this.zoomLevel = parseFloat(e.detail.ratio).toFixed(2);

@@ -37,8 +37,10 @@
             </div>
 
             <!-- Cropper Studio Canvas -->
-            <div class="relative flex-1 bg-neutral-950 flex items-center justify-center h-[62vh] min-h-[440px] max-h-[70vh] w-full overflow-hidden select-none">
-                <img x-ref="imageElement" alt="Image to crop" class="max-w-full max-h-full block object-contain" />
+            <div x-ref="cropperStudio" class="relative w-full h-[62vh] min-h-[420px] max-h-[700px] bg-neutral-950 flex items-center justify-center overflow-hidden select-none">
+                <div class="w-full h-full flex items-center justify-center">
+                    <img x-ref="imageElement" alt="Image to crop" class="block max-w-full" style="display: block; max-width: 100%;" />
+                </div>
                 <!-- Processing Overlay -->
                 <div x-show="isUploading" class="absolute inset-0 bg-black/75 backdrop-blur-sm flex flex-col items-center justify-center text-white space-y-3 z-30">
                     <svg class="animate-spin h-8 w-8 text-amber-500" fill="none" viewBox="0 0 24 24">
