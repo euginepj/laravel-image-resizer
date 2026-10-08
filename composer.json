@@ -1,16 +1,7 @@
 {
     "name": "euginepj/laravel-image-resizer",
     "description": "Interactive image cropper and multi-format (WebP, JPEG, PNG, AVIF) converter package for Laravel.",
-    "keywords": [
-        "laravel",
-        "image",
-        "cropper",
-        "resizer",
-        "webp",
-        "alpinejs",
-        "cropperjs",
-        "intervention-image"
-    ],
+    "keywords": ["laravel", "image", "cropper", "resizer", "webp", "alpinejs", "cropperjs", "intervention-image"],
     "homepage": "https://github.com/euginepj/laravel-image-resizer",
     "license": "MIT",
     "authors": [
@@ -42,6 +33,9 @@
         "psr-4": {
             "Euginepj\\ImageResizer\\Tests\\": "tests/"
         }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit"
     },
     "extra": {
         "laravel": {

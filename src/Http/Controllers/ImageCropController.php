@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 declare(strict_types=1);
 
@@ -6,9 +6,11 @@ namespace Euginepj\ImageResizer\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Log;
+use Euginepj\ImageResizer\Enums\ImageFormat;
 use Euginepj\ImageResizer\Facades\ImageResizer;
 use Euginepj\ImageResizer\Http\Requests\CropImageRequest;
-use Euginepj\ImageResizer\Enums\ImageFormat;
+use InvalidArgumentException;
 use Throwable;
 
 class ImageCropController extends Controller
@@ -16,55 +18,51 @@ class ImageCropController extends Controller
     public function __invoke(CropImageRequest $request): JsonResponse
     {
         try {
-            $file = $request->file('image');
-            $folder = trim($request->input('folder', config('image-resizer.upload_path', 'uploads/images')), '/');
-            $filename = uniqid('img_', true);
-            $basePath = "{$folder}/{$filename}";
+            $folder   = trim((string) ($request->input('folder') ?: config('image-resizer.upload_path', 'uploads/images')), '/');
+            $basePath = $folder . '/' . bin2hex(random_bytes(10));
 
-            // 1. Load image
-            $service = ImageResizer::load($file);
+            $service = ImageResizer::load($request->file('image'));
 
-            // 2. Rotate if requested
             $rotate = (float) $request->input('crop_rotate', 0);
-            if ($rotate != 0) {
-                // Invert rotation angle because canvas/cropperjs rotate clockwise
+            if ($rotate != 0.0) {
+                // Cropper.js rotates clockwise, Intervention rotates counter-clockwise.
                 $service->rotate(-$rotate);
             }
 
-            // 3. Crop coordinates
-            $cropX = (int) round((float) $request->input('crop_x', 0));
-            $cropY = (int) round((float) $request->input('crop_y', 0));
-            $cropWidth = (int) round((float) $request->input('crop_width'));
-            $cropHeight = (int) round((float) $request->input('crop_height'));
+            // Clamp the crop box to the (rotated) image bounds.
+            $imgW = $service->getWidth();
+            $imgH = $service->getHeight();
 
-            $service->crop($cropWidth, $cropHeight, $cropX, $cropY);
+            $x = max(0, min((int) round((float) $request->input('crop_x')), $imgW - 1));
+            $y = max(0, min((int) round((float) $request->input('crop_y')), $imgH - 1));
+            $w = max(1, min((int) round((float) $request->input('crop_width')), $imgW - $x));
+            $h = max(1, min((int) round((float) $request->input('crop_height')), $imgH - $y));
 
-            // 4. Scale to target output size if given
-            $targetWidth = $request->filled('target_width') ? (int) $request->input('target_width') : null;
-            $targetHeight = $request->filled('target_height') ? (int) $request->input('target_height') : null;
+            $service->crop($w, $h, $x, $y);
 
-            if ($targetWidth && $targetWidth > 0) {
-                $service->resize($targetWidth, $targetHeight);
+            if ($request->filled('target_width')) {
+                $service->resize((int) $request->input('target_width'), $request->filled('target_height') ? (int) $request->input('target_height') : null);
             }
 
-            // 5. Multi-format export
-            $requestedFormats = $request->input('formats', config('image-resizer.default_formats', ['webp', 'jpg', 'png']));
-            $formatEnums = array_map(fn($f) => ImageFormat::fromString((string)$f), $requestedFormats);
+            $formats = array_map(
+                fn ($f) => ImageFormat::fromString((string) $f),
+                $request->input('formats', config('image-resizer.default_formats', ['webp', 'jpg', 'png']))
+            );
 
-            $paths = $service->saveMultiFormat($basePath, $formatEnums);
-            $urls = $service->getUrls($paths);
+            $paths = $service->saveMultiFormat($basePath, $formats);
 
             return response()->json([
-                'status'  => 'success',
-                'paths'   => $paths,
-                'urls'    => $urls,
-                'base'    => $basePath,
+                'status' => 'success',
+                'paths'  => $paths,
+                'urls'   => $service->getUrls($paths),
+                'base'   => $basePath,
             ]);
+        } catch (InvalidArgumentException $e) {
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 422);
         } catch (Throwable $e) {
-            return response()->json([
-                'status'  => 'error',
-                'message' => $e->getMessage(),
-            ], 422);
+            Log::error('image-resizer: processing failed', ['exception' => $e]);
+
+            return response()->json(['status' => 'error', 'message' => 'The image could not be processed.'], 500);
         }
     }
 }

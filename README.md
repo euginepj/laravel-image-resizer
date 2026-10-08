@@ -1,108 +1,85 @@
-﻿# Laravel Image Resizer & Multi-Format Converter
+# Laravel Image Resizer
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/euginepj/laravel-image-resizer.svg?style=flat-square)](https://packagist.org/packages/euginepj/laravel-image-resizer)
-[![Total Downloads](https://img.shields.io/packagist/dt/euginepj/laravel-image-resizer.svg?style=flat-square)](https://packagist.org/packages/euginepj/laravel-image-resizer)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE)
+Interactive image cropping, resizing and multi-format conversion (**WebP, JPEG, PNG, AVIF**) for Laravel, powered by **Intervention Image v3** and **Alpine.js + Cropper.js**.
 
-A modern, high-performance Laravel package for interactive image cropping, resizing, and multi-format conversion (**WebP, JPEG, PNG, AVIF**) powered by **Intervention Image v3** and **Alpine.js + Cropper.js**.
+The browser sends crop coordinates; the server crops the original file, so quality is never degraded by a canvas re-encode.
 
----
+## Requirements
 
-## Features
-
-- ðŸŽ¯ **Interactive Visual Cropper**: Ready-to-use `<x-image-resizer::cropper />` Blade component with drag, zoom, and rotate controls.
-- âš¡ **Multi-Format Export**: Automatically generates and stores WebP, JPEG, and PNG formats simultaneously from a single crop.
-- ðŸ’Ž **Lossless Coordinate Processing**: Client sends integer crop coordinates; the server renders crisp, high-resolution output.
-- ðŸš€ **Intervention Image v3**: Supports both GD and Imagick drivers.
-- ðŸ“¦ **Storage Flexibility**: Seamlessly works with local, public, or AWS S3 disks.
-- ðŸ› ï¸ **Fluent Backend API**: Chainable methods for programmatic usage inside your controllers or queue jobs.
-
----
+- PHP 8.2+ with the **GD** (with WebP/AVIF support as needed) or **Imagick** extension
+- Laravel 10, 11 or 12
+- **Alpine.js v3** loaded on the page (the component does not bundle it)
+- `php artisan storage:link` when using the `public` disk
 
 ## Installation
 
-You can install the package via Composer:
-
 ```bash
 composer require euginepj/laravel-image-resizer
+php artisan vendor:publish --tag=image-resizer-config   # optional
+php artisan vendor:publish --tag=image-resizer-views    # optional
 ```
 
-Publish the config and views (optional):
-
-```bash
-php artisan vendor:publish --tag="image-resizer-config"
-php artisan vendor:publish --tag="image-resizer-views"
-```
-
----
-
-## Quick Start (Frontend Blade Component)
-
-Just place the component in your Blade view:
+## Blade component
 
 ```blade
-<!-- In your Blade view: -->
-<x-image-resizer::cropper 
-    name="avatar" 
-    :aspect-ratio="1" 
-    :target-width="400" 
-    :target-height="400" 
+<x-image-resizer::cropper
+    name="avatar"
+    :aspect-ratio="1"
+    :target-width="400"
+    :target-height="400"
     :formats="['webp', 'jpg', 'png']"
+    folder="avatars"
 />
 
-<!-- Catch the output paths/urls in your form -->
-<div x-data="{ avatarWebp: '', avatarJpg: '' }" 
-     @image-cropped.window="if ($event.detail.name === 'avatar') { avatarWebp = $event.detail.paths.webp; avatarJpg = $event.detail.paths.jpg; }">
-    
-    <input type="hidden" name="avatar_webp" :value="avatarWebp">
-    <input type="hidden" name="avatar_jpg" :value="avatarJpg">
+<div x-data="{ urls: null }" @image-cropped.window="urls = $event.detail.urls">
+    <template x-if="urls">
+        <picture>
+            <source :srcset="urls.webp" type="image/webp">
+            <img :src="urls.jpg" alt="Avatar">
+        </picture>
+    </template>
 </div>
 ```
 
----
+The `image-cropped` event detail contains `name`, `paths`, `urls` and `base`.
+Component props: `name`, `aspect-ratio`, `target-width`, `target-height`, `formats`, `folder`, `upload-url`, `button-label`, `modal-title`.
 
-## Programmatic Usage (Backend)
-
-You can also use the `ImageResizer` facade anywhere in your Laravel application:
+## Programmatic usage
 
 ```php
 use Euginepj\ImageResizer\Facades\ImageResizer;
-use Euginepj\ImageResizer\Enums\ImageFormat;
 
-// 1. Precise crop & multi-format export
-$paths = ImageResizer::load($request->file('avatar'))
+$paths = ImageResizer::load($request->file('photo'))
     ->rotate(90)
     ->crop(width: 500, height: 500, offsetX: 100, offsetY: 50)
-    ->resize(width: 300, height: 300)
-    ->saveMultiFormat('uploads/avatars/user-123', [
-        ImageFormat::WEBP,
-        ImageFormat::JPEG,
-        ImageFormat::PNG,
-    ]);
+    ->resize(300, 300)
+    ->saveMultiFormat('uploads/avatars/user-123', ['webp', 'jpg', 'png']);
 
-/*
-$paths returns:
-[
-    'webp' => 'uploads/avatars/user-123.webp',
-    'jpg'  => 'uploads/avatars/user-123.jpg',
-    'png'  => 'uploads/avatars/user-123.png',
-]
-*/
-```
-
----
-
-## Testing
-
-```bash
-composer test
+ImageResizer::delete($paths);
 ```
 
 ## Security
 
-If you discover any security issues, please submit an issue or pull request directly to the GitHub repository.
+The built-in endpoint `POST /image-resizer/upload` is throttled (`30/min`) but **not authenticated by default**. Restrict it in `config/image-resizer.php`:
+
+```php
+'routes' => ['enabled' => true, 'prefix' => 'image-resizer', 'middleware' => ['web', 'auth', 'throttle:30,1']],
+```
+
+Set `'enabled' => false` to disable the route entirely and use the facade from your own controller.
+Uploads are limited by `max_upload_kb` and `max_pixels`; `folder` accepts only letters, digits, `-`, `_` and `/`.
+
+## Configuration
+
+See [`config/image-resizer.php`](config/image-resizer.php): driver, quality per format, default formats, disk, upload path, limits, routes and asset URLs (use your own files instead of the CDN).
+
+## Testing
+
+```bash
+composer install
+composer test
+```
 
 ## License
 
-The MIT License (MIT). Please see [License File](LICENSE) for more information.
-# laravel-image-resizer
+MIT

@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 declare(strict_types=1);
 
@@ -17,6 +17,9 @@ use Euginepj\ImageResizer\Enums\ImageFormat;
  * @method static string save(string $path, ImageFormat|string $format = ImageFormat::WEBP, ?int $quality = null)
  * @method static array saveMultiFormat(string $basePath, array $formats = [])
  * @method static array getUrls(array $savedPaths)
+ * @method static bool delete(array|string $paths)
+ * @method static int getWidth()
+ * @method static int getHeight()
  *
  * @see \Euginepj\ImageResizer\Services\ImageResizerService
  */
