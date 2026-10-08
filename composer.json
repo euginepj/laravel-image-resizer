@@ -1,0 +1,58 @@
+﻿{
+    "name": "euginepj/laravel-image-resizer",
+    "description": "Interactive image cropper and multi-format (WebP, JPEG, PNG, AVIF) converter package for Laravel.",
+    "keywords": [
+        "laravel",
+        "image",
+        "cropper",
+        "resizer",
+        "webp",
+        "alpinejs",
+        "cropperjs",
+        "intervention-image"
+    ],
+    "homepage": "https://github.com/euginepj/laravel-image-resizer",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Eugine",
+            "homepage": "https://github.com/euginepj"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "illuminate/contracts": "^10.0|^11.0|^12.0",
+        "illuminate/support": "^10.0|^11.0|^12.0",
+        "illuminate/filesystem": "^10.0|^11.0|^12.0",
+        "illuminate/http": "^10.0|^11.0|^12.0",
+        "illuminate/routing": "^10.0|^11.0|^12.0",
+        "illuminate/view": "^10.0|^11.0|^12.0",
+        "intervention/image": "^3.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^8.0|^9.0|^10.0",
+        "phpunit/phpunit": "^10.0|^11.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Euginepj\\ImageResizer\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Euginepj\\ImageResizer\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Euginepj\\ImageResizer\\ImageResizerServiceProvider"
+            ],
+            "aliases": {
+                "ImageResizer": "Euginepj\\ImageResizer\\Facades\\ImageResizer"
+            }
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
