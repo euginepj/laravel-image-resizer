@@ -19,11 +19,11 @@ jobs:
         dependency-version: [prefer-stable]
         include:
           - laravel: '10.*'
-            testbench: '^8.0'
+            testbench: '8.*'
           - laravel: '11.*'
-            testbench: '^9.0'
+            testbench: '9.*'
           - laravel: '12.*'
-            testbench: '^10.0'
+            testbench: '10.*'
 
     name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }} - ${{ matrix.dependency-version }}
 
@@ -40,8 +40,10 @@ jobs:
 
       - name: Install dependencies
         run: |
-          composer require "illuminate/contracts:${{ matrix.laravel }}" "illuminate/support:${{ matrix.laravel }}" "illuminate/filesystem:${{ matrix.laravel }}" "illuminate/http:${{ matrix.laravel }}" "illuminate/routing:${{ matrix.laravel }}" "illuminate/view:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --no-interaction --no-update
-          composer update --${{ matrix.dependency-version }} --prefer-dist --no-interaction --no-audit
+          composer config --json policy.advisories.block false
+          composer require "illuminate/contracts:${{ matrix.laravel }}" "illuminate/support:${{ matrix.laravel }}" "illuminate/filesystem:${{ matrix.laravel }}" "illuminate/http:${{ matrix.laravel }}" "illuminate/routing:${{ matrix.laravel }}" "illuminate/view:${{ matrix.laravel }}" --no-interaction --no-update
+          composer require "orchestra/testbench:${{ matrix.testbench }}" --dev --no-interaction --no-update
+          composer update --${{ matrix.dependency-version }} --prefer-dist --no-interaction --no-audit -W
 
       - name: Execute tests
         run: vendor/bin/phpunit --testdox
