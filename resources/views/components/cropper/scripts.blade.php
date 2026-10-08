@@ -2,7 +2,7 @@
 <style>
     [x-cloak] { display: none !important; }
     .cropper-view-box {
-        outline: 2px solid #f59e0b !important;
+        outline: 2px solid #059e0b !important;
         outline-color: #f59e0b !important;
         border-radius: 4px;
     }
@@ -68,9 +68,9 @@ document.addEventListener('alpine:init', () => {
             }
             this.cropper = new Cropper(this.$refs.imageElement, {
                 aspectRatio: cfg.aspectRatio,
-                viewMode: 2,
+                viewMode: 1,
                 dragMode: 'move',
-                autoCropArea: 0.9,
+                autoCropArea: 0.95,
                 responsive: true,
                 restore: false,
                 guides: true,
@@ -80,11 +80,15 @@ document.addEventListener('alpine:init', () => {
                 cropBoxResizable: true,
                 toggleDragModeOnDblclick: false,
                 background: false,
+                ready: () => {
+                    // Recalculate canvas fit when modal becomes visible
+                    this.cropper.crop();
+                },
                 zoom: (e) => {
                     this.zoomLevel = parseFloat(e.detail.ratio).toFixed(2);
                 }
             });
-        },
+        }, 
 
         onZoomSlider() {
             if (this.cropper) {
