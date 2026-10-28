@@ -6,8 +6,8 @@ The browser sends crop coordinates; the server crops the original file, so quali
 
 ## Requirements
 
-- PHP 8.2+ with the **GD** (with WebP/AVIF support as needed) or **Imagick** extension
-- Laravel 10, 11 or 12
+- PHP 8.2+ with the **GD** (with WebP/AVIF support as needed) or **Imagick** extension (Laravel 13 requires PHP 8.3+)
+- Laravel 10, 11, 12, or 13
 - **Alpine.js v3** loaded on the page (the component does not bundle it)
 - `php artisan storage:link` when using the `public` disk
 
