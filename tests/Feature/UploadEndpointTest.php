@@ -5,6 +5,7 @@ namespace Euginepj\ImageResizer\Tests\Feature;
 use Euginepj\ImageResizer\Tests\TestCase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use PHPUnit\Framework\Attributes\Test;
 
 class UploadEndpointTest extends TestCase
 {
@@ -21,6 +22,7 @@ class UploadEndpointTest extends TestCase
         ], $override);
     }
 
+    #[Test]
     public function test_successful_crop_returns_all_formats(): void
     {
         Storage::fake('public');
@@ -33,6 +35,7 @@ class UploadEndpointTest extends TestCase
         }
     }
 
+    #[Test]
     public function test_out_of_bounds_crop_is_clamped(): void
     {
         Storage::fake('public');
@@ -46,6 +49,7 @@ class UploadEndpointTest extends TestCase
         $this->assertSame(50, $size[0]);
     }
 
+    #[Test]
     public function test_target_size_is_applied(): void
     {
         Storage::fake('public');
@@ -58,6 +62,7 @@ class UploadEndpointTest extends TestCase
         $this->assertSame([100, 75], [$size[0], $size[1]]);
     }
 
+    #[Test]
     public function test_non_image_upload_is_rejected(): void
     {
         $res = $this->postJson(route('image-resizer.upload'), $this->payload([
@@ -67,6 +72,7 @@ class UploadEndpointTest extends TestCase
         $res->assertStatus(422)->assertJsonValidationErrors('image');
     }
 
+    #[Test]
     public function test_path_traversal_in_folder_is_rejected(): void
     {
         $res = $this->postJson(route('image-resizer.upload'), $this->payload(['folder' => '../../etc']));
@@ -74,6 +80,7 @@ class UploadEndpointTest extends TestCase
         $res->assertStatus(422)->assertJsonValidationErrors('folder');
     }
 
+    #[Test]
     public function test_custom_folder_is_used(): void
     {
         Storage::fake('public');
@@ -83,6 +90,7 @@ class UploadEndpointTest extends TestCase
         $this->assertStringStartsWith('avatars/2026/', $res->json('paths.png'));
     }
 
+    #[Test]
     public function test_missing_coordinates_are_rejected(): void
     {
         $res = $this->postJson(route('image-resizer.upload'), ['image' => UploadedFile::fake()->image('a.png')]);
@@ -90,6 +98,7 @@ class UploadEndpointTest extends TestCase
         $res->assertStatus(422)->assertJsonValidationErrors(['crop_x', 'crop_y', 'crop_width', 'crop_height']);
     }
 
+    #[Test]
     public function test_endpoint_is_throttled(): void
     {
         Storage::fake('public');

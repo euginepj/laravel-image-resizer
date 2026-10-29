@@ -7,9 +7,11 @@ use Euginepj\ImageResizer\Facades\ImageResizer;
 use Euginepj\ImageResizer\Tests\TestCase;
 use Illuminate\Support\Facades\Storage;
 use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\Test;
 
 class ImageResizerTest extends TestCase
 {
+    #[Test]
     public function test_enum_parsing(): void
     {
         $this->assertSame(ImageFormat::WEBP, ImageFormat::fromString('webp'));
@@ -18,6 +20,7 @@ class ImageResizerTest extends TestCase
         $this->assertSame(ImageFormat::PNG, ImageFormat::fromString('png'));
     }
 
+    #[Test]
     public function test_crop_produces_expected_dimensions(): void
     {
         Storage::fake('public');
@@ -31,6 +34,7 @@ class ImageResizerTest extends TestCase
         $this->assertSame([50, 40], [$size[0], $size[1]]);
     }
 
+    #[Test]
     public function test_multi_format_creates_every_file(): void
     {
         Storage::fake('public');
@@ -46,6 +50,7 @@ class ImageResizerTest extends TestCase
         $this->assertSame('image/jpeg', getimagesizefromstring(Storage::disk('public')->get($paths['jpg']))['mime']);
     }
 
+    #[Test]
     public function test_directory_with_dots_is_not_mangled(): void
     {
         Storage::fake('public');
@@ -55,6 +60,7 @@ class ImageResizerTest extends TestCase
         $this->assertSame('v1.2/photo.png', $path);
     }
 
+    #[Test]
     public function test_rotation_keeps_transparent_corners_in_png(): void
     {
         Storage::fake('public');
@@ -68,6 +74,7 @@ class ImageResizerTest extends TestCase
         $this->assertSame(127, $alpha, 'Corner should be fully transparent');
     }
 
+    #[Test]
     public function test_resize_scales_proportionally(): void
     {
         Storage::fake('public');
@@ -78,6 +85,7 @@ class ImageResizerTest extends TestCase
         $this->assertSame([100, 50], [$size[0], $size[1]]);
     }
 
+    #[Test]
     public function test_delete_removes_files(): void
     {
         Storage::fake('public');
@@ -91,6 +99,7 @@ class ImageResizerTest extends TestCase
         }
     }
 
+    #[Test]
     public function test_oversized_image_is_rejected(): void
     {
         config(['image-resizer.max_pixels' => 100]);
@@ -99,6 +108,7 @@ class ImageResizerTest extends TestCase
         ImageResizer::load($this->makeImage(200, 100));
     }
 
+    #[Test]
     public function test_non_image_is_rejected(): void
     {
         $file = tempnam(sys_get_temp_dir(), 'txt');

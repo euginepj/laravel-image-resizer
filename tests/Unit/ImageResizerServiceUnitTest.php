@@ -6,6 +6,7 @@ use Euginepj\ImageResizer\Enums\ImageFormat;
 use Euginepj\ImageResizer\Services\ImageResizerService;
 use Euginepj\ImageResizer\Tests\TestCase;
 use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\Test;
 
 class ImageResizerServiceUnitTest extends TestCase
 {
@@ -26,6 +27,7 @@ class ImageResizerServiceUnitTest extends TestCase
         ]);
     }
 
+    #[Test]
     public function test_throws_exception_when_no_image_loaded(): void
     {
         $this->expectException(InvalidArgumentException::class);
@@ -34,6 +36,7 @@ class ImageResizerServiceUnitTest extends TestCase
         $this->service->getImage();
     }
 
+    #[Test]
     public function test_throws_exception_for_empty_source(): void
     {
         $this->expectException(InvalidArgumentException::class);
@@ -42,6 +45,7 @@ class ImageResizerServiceUnitTest extends TestCase
         $this->service->load('');
     }
 
+    #[Test]
     public function test_can_load_valid_image_and_read_dimensions(): void
     {
         $path = $this->makeImage(150, 80);
@@ -51,6 +55,7 @@ class ImageResizerServiceUnitTest extends TestCase
         $this->assertSame(80, $this->service->getHeight());
     }
 
+    #[Test]
     public function test_image_format_enum_helper(): void
     {
         $this->assertSame(ImageFormat::WEBP, ImageFormat::fromString('WEBP'));

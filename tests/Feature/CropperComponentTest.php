@@ -4,9 +4,11 @@ namespace Euginepj\ImageResizer\Tests\Feature;
 
 use Euginepj\ImageResizer\Tests\TestCase;
 use Illuminate\Support\Facades\Blade;
+use PHPUnit\Framework\Attributes\Test;
 
 class CropperComponentTest extends TestCase
 {
+    #[Test]
     public function test_cropper_component_renders_successfully(): void
     {
         $rendered = Blade::render(
@@ -22,6 +24,7 @@ class CropperComponentTest extends TestCase
         $this->assertStringContainsString('toggleFlipY()', $rendered);
     }
 
+    #[Test]
     public function test_cropper_component_renders_with_custom_trigger(): void
     {
         $rendered = Blade::render(
